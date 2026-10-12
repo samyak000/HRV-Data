@@ -1,99 +1,211 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0c10">
 <title>HRV · Noise REP vs Benchmark</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💓</text></svg>">
 <style>
-:root{--bg:#eef1f6;--card:#fff;--ink:#111827;--mute:#7c8594;--line:#e3e7ee;--soft:#f3f3f3;--rep:#16a34a;--bench:#dc2626}
-@media (prefers-color-scheme:dark){:root{--bg:#0b0f17;--card:#121826;--ink:#eef1f6;--mute:#7c8594;--line:#222a3a;--soft:#1c1c1c;--rep:#22c55e;--bench:#f05252}}
+:root{
+  --bg:#0a0c10;--surface:#11141a;--surface2:#161a22;--line:#1f242e;--line2:#2a303c;
+  --ink:#e8eaf0;--mute:#8a92a3;--dim:#5c6473;
+  --rep:#34d399;--rep-a:rgba(52,211,153,.14);--bench:#f87171;--bench-a:rgba(248,113,113,.12);
+  --good:#34d399;--warn:#fbbf24;--bad:#f87171;--accent:#7c9cff;
+  --r:14px;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-main{max-width:980px;margin:auto;padding:48px 24px 64px}
-.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
-h1{font-size:30px;font-weight:600;letter-spacing:-.025em;margin:0 0 6px}
-.lede{color:var(--mute);margin:0 0 36px}
-.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;margin-bottom:28px;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{flex:none;font:inherit;font-size:13px;border:0;background:transparent;color:var(--mute);padding:7px 12px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s}
-.tabs button:hover{color:var(--ink)}
-.tabs button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
-.tabs button:focus-visible{outline:2px solid var(--mute);outline-offset:2px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px}
-.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}
-.top h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-.02em}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#141a2a 0%,transparent 60%),var(--bg);color:var(--ink);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit}
+.app{max-width:1240px;margin:auto;padding:36px 24px 56px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:28px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;font-weight:600}
+h1{margin:0;font-size:28px;font-weight:650;letter-spacing:-.025em}
+.sub{margin:6px 0 0;color:var(--mute)}
+.kpis{display:flex;gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:108px}
+.kpi b{display:block;font-size:20px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi span{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
+.side{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;position:sticky;top:20px;max-height:calc(100vh - 40px);display:flex;flex-direction:column}
+.search{position:relative;margin-bottom:8px}
+.search input{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px 9px 34px;color:var(--ink);font:inherit;outline:none;transition:border-color .15s}
+.search input:focus{border-color:var(--accent)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--dim)}
+.list{overflow-y:auto;margin:0 -4px;padding:0 4px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:9px 10px;cursor:pointer;transition:background .12s,border-color .12s}
+.item:hover{background:var(--surface2)}
+.item[aria-current=true]{background:var(--surface2);border-color:var(--line2)}
+.item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:650;background:#1c2230;color:var(--mute)}
+.item[aria-current=true] .av{background:var(--accent);color:#0a0c10}
+.meta{flex:1;min-width:0}
+.meta b{display:block;font-weight:600;font-size:13.5px}
+.meta span{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{flex:none;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;font-variant-numeric:tabular-nums;background:var(--surface2);color:var(--dim)}
+.pill.good{color:var(--good);background:rgba(52,211,153,.1)}.pill.warn{color:var(--warn);background:rgba(251,191,36,.1)}.pill.bad{color:var(--bad);background:rgba(248,113,113,.1)}
+.empty{color:var(--dim);font-size:13px;padding:12px}
+.side,.main{min-width:0}.main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;margin-bottom:18px}
+.top h2{margin:0;font-size:22px;font-weight:650;letter-spacing:-.02em}
 .top .dev{color:var(--mute);font-size:13px}
-.stats{display:flex;gap:32px}
-.stats div{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
-.stats b{display:block;font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-.02em;text-transform:none;margin-bottom:2px;font-variant-numeric:tabular-nums}
-.legend{display:flex;gap:20px;font-size:12px;color:var(--mute);margin-bottom:8px}
-.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--c)}
-.wrap{position:relative;overflow-x:auto}
-svg{display:block;width:100%;min-width:560px;touch-action:none;font-variant-numeric:tabular-nums}
-.tip{position:absolute;top:6px;pointer-events:none;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.08);padding:10px 12px;border-radius:10px;font-size:12px;white-space:nowrap;opacity:0;transition:opacity .12s}
-.tip b{display:block;margin-bottom:4px}
-.tip .r{color:var(--rep)}.tip .bn{color:var(--bench)}.tip .d{color:var(--mute)}
-.scrub{display:flex;align-items:center;gap:14px;margin-top:18px;font-size:12px;color:var(--mute)}
-.scrub input{flex:1;appearance:none;height:2px;background:var(--line);border-radius:2px;outline:none}
-.scrub input::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:grab}
-.scrub input::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--ink);cursor:grab}
-.scrub #sl{min-width:52px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-footer{margin-top:28px;font-size:12px;color:var(--mute)}
-@media (max-width:600px){main{padding:32px 16px 48px}.card{padding:20px}.stats{gap:20px}h1{font-size:24px}}
-</style></head><body><main>
-<p class="eyebrow">HRV accuracy study</p>
-<h1>Noise REP vs benchmark</h1>
-<p class="lede">Daily overnight HRV per tester. Hover the chart or drag the slider to inspect a day.</p>
-<nav class="tabs" id="users" aria-label="Testers"></nav>
-<section class="card">
-<div class="top"><div><h2 id="uname"></h2><span class="dev" id="udev"></span></div>
-<div class="stats"><div><b id="s1">–</b>Paired days</div><div><b id="s2">–</b>Avg diff</div><div><b id="s3">–</b>Avg gap</div></div></div>
-<div class="legend"><span style="--c:var(--rep)">Noise REP</span><span style="--c:var(--bench)">Benchmark</span></div>
-<div class="wrap" id="wrap"><svg id="svg"></svg><div class="tip" id="tip"></div></div>
-<div class="scrub"><input type="range" id="slider" min="0" value="0" aria-label="Select day"><span id="sl"></span></div>
-</section>
-<footer>Values in milliseconds. Avg diff = REP − benchmark; avg gap = mean absolute difference.</footer>
-</main>
+.stats{display:flex;gap:28px}
+.stat span{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.stat b{display:block;font-size:22px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.toggles{display:flex;gap:6px}
+.tg{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer;transition:opacity .15s,border-color .15s}
+.tg i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.tg[aria-pressed=false]{opacity:.45}
+.tg:hover{border-color:var(--line2)}
+.hint{font-size:12px;color:var(--dim)}
+.chart{position:relative;overflow-x:auto;margin:0 -6px}
+#svg{display:block;width:100%;min-width:600px;touch-action:pan-y;font-variant-numeric:tabular-nums;user-select:none}
+#svg text{font-family:inherit}
+.tip{position:absolute;top:8px;pointer-events:none;background:rgba(17,20,26,.92);backdrop-filter:blur(8px);border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.4);padding:10px 12px;border-radius:10px;font-size:12.5px;min-width:150px;opacity:0;transition:opacity .12s,left .08s}
+.tip .d{font-weight:600;margin-bottom:6px}
+.tip .row{display:flex;justify-content:space-between;gap:16px}
+.tip .row i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--c)}
+.tip .row b{font-variant-numeric:tabular-nums}
+.tip .df{margin-top:6px;padding-top:6px;border-top:1px solid var(--line2)}
+.scrub{display:flex;align-items:center;gap:12px;margin-top:14px}
+.nav{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);cursor:pointer;display:grid;place-items:center;color:var(--mute)}
+.nav:hover{color:var(--ink);border-color:var(--line2)}
+.scrub input{flex:1;appearance:none;-webkit-appearance:none;height:4px;border-radius:4px;background:linear-gradient(to right,var(--accent) var(--p,100%),var(--line2) var(--p,100%));outline:none;cursor:pointer}
+.scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(124,156,255,.25)}
+.scrub input::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(124,156,255,.25)}
+.scrub .date{min-width:64px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:600;text-align:left;padding:0 12px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+th:not(:first-child),td:not(:first-child){text-align:right}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer;transition:background .1s}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.on{background:rgba(124,156,255,.08)}
+td.r{color:var(--rep)}td.b{color:var(--bench)}td.na{color:var(--dim)}
+.card h3{margin:0 0 14px;font-size:14px;font-weight:600;color:var(--mute)}
+footer{margin-top:24px;font-size:12px;color:var(--dim);display:flex;flex-wrap:wrap;gap:16px}
+footer span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--c)}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;max-height:none;padding:10px}
+  .list{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .list::-webkit-scrollbar{display:none}
+  .item{width:auto;flex:none;padding:6px 12px 6px 6px}
+  .meta span,.pill{display:none}
+  .kpis{width:100%}.kpi{flex:1;min-width:0}
+}
+@media (max-width:520px){#svg{min-width:640px}.kpi b{font-size:17px}.kpi span{font-size:10px}.app{padding:24px 14px 40px}.card{padding:18px}.stats{gap:18px}.stat b{font-size:19px}h1{font-size:23px}.hint{display:none}}
+</style></head><body><div class="app">
+<header>
+  <div><p class="eyebrow">HRV accuracy study</p><h1>Noise REP vs benchmark</h1><p class="sub">Daily overnight HRV, compared tester by tester.</p></div>
+  <div class="kpis"><div class="kpi"><b id="k1">–</b><span>Testers</span></div><div class="kpi"><b id="k2">–</b><span>Paired days</span></div><div class="kpi"><b id="k3">–</b><span>Avg gap</span></div></div>
+</header>
+<div class="layout">
+  <aside class="side">
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search tester" aria-label="Search tester"></label>
+    <nav class="list" id="list" aria-label="Testers"></nav>
+  </aside>
+  <section class="main">
+    <div class="card">
+      <div class="top"><div><h2 id="uname"></h2><span class="dev" id="udev"></span></div>
+        <div class="stats"><div class="stat"><b id="s1">–</b><span>Paired</span></div><div class="stat"><b id="s2">–</b><span>Avg diff</span></div><div class="stat"><b id="s3">–</b><span>Avg gap</span></div></div></div>
+      <div class="toolbar"><div class="toggles">
+        <button class="tg" id="tRep" aria-pressed="true" style="--c:var(--rep)"><i></i>Noise REP</button>
+        <button class="tg" id="tBen" aria-pressed="true" style="--c:var(--bench)"><i></i>Benchmark</button></div>
+        <span class="hint">Hover, drag or use ← → keys</span></div>
+      <div class="chart" id="wrap"><svg id="svg" role="img" aria-label="HRV chart"></svg><div class="tip" id="tip"></div></div>
+      <div class="scrub"><button class="nav" id="prev" aria-label="Previous day">‹</button>
+        <input type="range" id="slider" min="0" value="0" aria-label="Select day">
+        <button class="nav" id="next" aria-label="Next day">›</button><span class="date" id="sl"></span></div>
+    </div>
+    <div class="card"><h3>Daily readings</h3><div class="tbl"><table><thead><tr><th>Date</th><th>REP</th><th>Benchmark</th><th>Diff</th></tr></thead><tbody id="tb"></tbody></table></div></div>
+  </section>
+</div>
+<footer><span style="--c:var(--good)">Gap ≤ 5 ms</span><span style="--c:var(--warn)">6–10 ms</span><span style="--c:var(--bad)">&gt; 10 ms</span><span style="--c:var(--dim)">Diff = REP − benchmark, in ms</span></footer>
+</div>
 <script>
-const DATA=[{"name": "Moksh", "device": "Garmin Cirqa", "pts": [{"date": "2026-09-20", "rep": 99, "bench": null}, {"date": "2026-09-21", "rep": 106, "bench": null}, {"date": "2026-09-22", "rep": 70, "bench": null}, {"date": "2026-09-23", "rep": 72, "bench": null}, {"date": "2026-09-24", "rep": 73, "bench": null}, {"date": "2026-09-25", "rep": 74, "bench": null}, {"date": "2026-09-26", "rep": 88, "bench": null}, {"date": "2026-09-27", "rep": 71, "bench": null}, {"date": "2026-09-28", "rep": 84, "bench": 60}, {"date": "2026-09-29", "rep": 76, "bench": 57}, {"date": "2026-09-30", "rep": 88, "bench": 65}, {"date": "2026-10-01", "rep": 81, "bench": 51}, {"date": "2026-10-02", "rep": 107, "bench": 71}, {"date": "2026-10-03", "rep": 100, "bench": 74}, {"date": "2026-10-04", "rep": null, "bench": 70}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 85, "bench": 68}, {"date": "2026-10-07", "rep": 85, "bench": 63}, {"date": "2026-10-08", "rep": 88, "bench": 67}, {"date": "2026-10-09", "rep": 83, "bench": null}, {"date": "2026-10-10", "rep": 64, "bench": null}, {"date": "2026-10-11", "rep": 108, "bench": null}, {"date": "2026-10-12", "rep": 112, "bench": null}]}, {"name": "Ayushi", "device": "No benchmark", "pts": [{"date": "2026-09-22", "rep": 46, "bench": null}, {"date": "2026-09-23", "rep": 46, "bench": null}, {"date": "2026-09-24", "rep": 70, "bench": null}, {"date": "2026-09-25", "rep": 67, "bench": null}, {"date": "2026-09-26", "rep": 72, "bench": null}, {"date": "2026-09-27", "rep": 71, "bench": null}, {"date": "2026-09-28", "rep": 75, "bench": null}, {"date": "2026-09-29", "rep": null, "bench": null}, {"date": "2026-09-30", "rep": null, "bench": null}, {"date": "2026-10-01", "rep": null, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": null, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 36, "bench": null}, {"date": "2026-10-07", "rep": 34, "bench": null}, {"date": "2026-10-08", "rep": 37, "bench": null}, {"date": "2026-10-09", "rep": 46, "bench": null}, {"date": "2026-10-10", "rep": 52, "bench": null}, {"date": "2026-10-11", "rep": 47, "bench": null}, {"date": "2026-10-12", "rep": 54, "bench": null}]}, {"name": "Samyak", "device": "No benchmark", "pts": [{"date": "2026-09-25", "rep": 45, "bench": null}, {"date": "2026-09-26", "rep": null, "bench": null}, {"date": "2026-09-27", "rep": 45, "bench": null}, {"date": "2026-09-28", "rep": 65, "bench": null}, {"date": "2026-09-29", "rep": 50, "bench": null}, {"date": "2026-09-30", "rep": 52, "bench": null}, {"date": "2026-10-01", "rep": 46, "bench": null}, {"date": "2026-10-02", "rep": 55, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": 53, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 47, "bench": null}, {"date": "2026-10-07", "rep": null, "bench": null}, {"date": "2026-10-08", "rep": 47, "bench": null}, {"date": "2026-10-09", "rep": 50, "bench": null}, {"date": "2026-10-10", "rep": 51, "bench": null}, {"date": "2026-10-11", "rep": 49, "bench": null}, {"date": "2026-10-12", "rep": 50, "bench": null}]}, {"name": "Pratyush", "device": "No benchmark", "pts": [{"date": "2026-09-29", "rep": 84, "bench": null}, {"date": "2026-09-30", "rep": 75, "bench": null}, {"date": "2026-10-01", "rep": 27, "bench": null}, {"date": "2026-10-02", "rep": 90, "bench": null}, {"date": "2026-10-03", "rep": 86, "bench": null}, {"date": "2026-10-04", "rep": 69, "bench": null}, {"date": "2026-10-05", "rep": 80, "bench": null}, {"date": "2026-10-06", "rep": 94, "bench": null}, {"date": "2026-10-07", "rep": 93, "bench": null}, {"date": "2026-10-08", "rep": 89, "bench": null}, {"date": "2026-10-09", "rep": 68, "bench": null}, {"date": "2026-10-10", "rep": 80, "bench": null}, {"date": "2026-10-11", "rep": 78, "bench": null}, {"date": "2026-10-12", "rep": 84, "bench": null}]}, {"name": "Harshul", "device": "No benchmark", "pts": [{"date": "2026-09-26", "rep": 65, "bench": null}, {"date": "2026-09-27", "rep": 89, "bench": null}, {"date": "2026-09-28", "rep": 82, "bench": null}, {"date": "2026-09-29", "rep": 75, "bench": null}, {"date": "2026-09-30", "rep": 79, "bench": null}, {"date": "2026-10-01", "rep": 42, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": null, "bench": null}, {"date": "2026-10-05", "rep": 41, "bench": null}, {"date": "2026-10-06", "rep": 54, "bench": null}, {"date": "2026-10-07", "rep": 63, "bench": null}, {"date": "2026-10-08", "rep": 41, "bench": null}, {"date": "2026-10-09", "rep": 66, "bench": null}]}, {"name": "Jagathees", "device": "Whoop", "pts": [{"date": "2026-09-30", "rep": 69, "bench": 54}, {"date": "2026-10-01", "rep": 45, "bench": 40}, {"date": "2026-10-03", "rep": 66, "bench": 67}, {"date": "2026-10-04", "rep": null, "bench": 76}, {"date": "2026-10-05", "rep": 64, "bench": 64}, {"date": "2026-10-06", "rep": 62, "bench": 60}, {"date": "2026-10-07", "rep": 64, "bench": 68}, {"date": "2026-10-08", "rep": 67, "bench": 64}, {"date": "2026-10-09", "rep": 64, "bench": 69}, {"date": "2026-10-10", "rep": 30, "bench": 24}, {"date": "2026-10-11", "rep": 63, "bench": 60}, {"date": "2026-10-12", "rep": 77, "bench": 70}]}, {"name": "Sahil", "device": "No benchmark", "pts": [{"date": "2026-10-01", "rep": 68, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": 70, "bench": null}, {"date": "2026-10-04", "rep": 89, "bench": null}, {"date": "2026-10-05", "rep": 71, "bench": null}, {"date": "2026-10-06", "rep": 82, "bench": null}, {"date": "2026-10-07", "rep": 73, "bench": null}, {"date": "2026-10-08", "rep": 95, "bench": null}, {"date": "2026-10-09", "rep": 93, "bench": null}, {"date": "2026-10-10", "rep": 94, "bench": null}, {"date": "2026-10-11", "rep": 104, "bench": null}, {"date": "2026-10-12", "rep": 89, "bench": null}]}, {"name": "Ayush", "device": "Coros", "pts": [{"date": "2026-09-30", "rep": 67, "bench": 106}, {"date": "2026-10-01", "rep": 78, "bench": 98}, {"date": "2026-10-03", "rep": 79, "bench": 107}, {"date": "2026-10-04", "rep": 85, "bench": 96}, {"date": "2026-10-05", "rep": 84, "bench": 81}, {"date": "2026-10-06", "rep": 67, "bench": 58}, {"date": "2026-10-07", "rep": 94, "bench": null}, {"date": "2026-10-08", "rep": 91, "bench": 86}, {"date": "2026-10-09", "rep": 78, "bench": 71}, {"date": "2026-10-10", "rep": 74, "bench": 83}]}, {"name": "Naman", "device": "Fitbit", "pts": [{"date": "2026-10-04", "rep": 85, "bench": 82}, {"date": "2026-10-05", "rep": 88, "bench": 93}, {"date": "2026-10-06", "rep": 83, "bench": 88}, {"date": "2026-10-07", "rep": 78, "bench": 76}, {"date": "2026-10-08", "rep": 67, "bench": 56}, {"date": "2026-10-09", "rep": 70, "bench": 55}, {"date": "2026-10-10", "rep": 91, "bench": 93}, {"date": "2026-10-11", "rep": 63, "bench": null}, {"date": "2026-10-12", "rep": 65, "bench": 51}]}, {"name": "Prashant", "device": "No benchmark", "pts": [{"date": "2026-09-26", "rep": 80, "bench": null}, {"date": "2026-09-27", "rep": null, "bench": null}, {"date": "2026-09-28", "rep": null, "bench": null}, {"date": "2026-09-29", "rep": 51, "bench": null}, {"date": "2026-09-30", "rep": 60, "bench": null}, {"date": "2026-10-01", "rep": 55, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": 74, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 59, "bench": null}, {"date": "2026-10-07", "rep": 66, "bench": null}, {"date": "2026-10-09", "rep": 74, "bench": null}]}, {"name": "Akshay", "device": "Whoop", "pts": [{"date": "2026-10-07", "rep": 61, "bench": 71}, {"date": "2026-10-08", "rep": 78, "bench": 78}, {"date": "2026-10-09", "rep": 72, "bench": 79}, {"date": "2026-10-10", "rep": 79, "bench": 74}, {"date": "2026-10-11", "rep": 73, "bench": 84}, {"date": "2026-10-12", "rep": 76, "bench": 75}]}, {"name": "Amjad", "device": "Amazfit", "pts": [{"date": "2026-10-01", "rep": 73, "bench": 78}, {"date": "2026-10-06", "rep": 90, "bench": null}, {"date": "2026-10-07", "rep": null, "bench": null}, {"date": "2026-10-08", "rep": null, "bench": 59}, {"date": "2026-10-09", "rep": null, "bench": null}, {"date": "2026-10-10", "rep": 67, "bench": 69}, {"date": "2026-10-11", "rep": 69, "bench": 66}, {"date": "2026-10-12", "rep": 89, "bench": 84}]}, {"name": "Mahesh", "device": "Fitbit Air", "pts": [{"date": "2026-10-07", "rep": 85, "bench": null}, {"date": "2026-10-08", "rep": 85, "bench": 87}, {"date": "2026-10-09", "rep": null, "bench": null}, {"date": "2026-10-10", "rep": 95, "bench": 101}, {"date": "2026-10-11", "rep": 27, "bench": 22}, {"date": "2026-10-12", "rep": 54, "bench": 40}]}, {"name": "Nupur", "device": "Amazfit", "pts": [{"date": "2026-10-06", "rep": 122, "bench": 121}, {"date": "2026-10-07", "rep": 110, "bench": 104}, {"date": "2026-10-08", "rep": 98, "bench": 103}, {"date": "2026-10-09", "rep": 111, "bench": 102}]}, {"name": "Amit", "device": "Amazfit", "pts": [{"date": "2026-09-29", "rep": 65, "bench": 71}, {"date": "2026-09-30", "rep": 48, "bench": 46}, {"date": "2026-10-09", "rep": null, "bench": null}]}, {"name": "Kartikey", "device": "Fitbit", "pts": [{"date": "2026-09-30", "rep": 116, "bench": 118}, {"date": "2026-10-01", "rep": 103, "bench": 131}, {"date": "2026-10-09", "rep": null, "bench": null}]}, {"name": "Sneh", "device": "Balance", "pts": [{"date": "2026-09-30", "rep": 103, "bench": 98}, {"date": "2026-10-08", "rep": 67, "bench": 61}, {"date": "2026-10-09", "rep": null, "bench": null}]}, {"name": "Harshit", "device": "No benchmark", "pts": [{"date": "2026-10-08", "rep": 54, "bench": null}, {"date": "2026-10-09", "rep": 50, "bench": null}]}];
+const DATA=[{"name": "Moksh", "device": "Garmin Cirqa", "pts": [{"date": "2026-09-20", "rep": 99, "bench": null}, {"date": "2026-09-21", "rep": 106, "bench": null}, {"date": "2026-09-22", "rep": 70, "bench": null}, {"date": "2026-09-23", "rep": 72, "bench": null}, {"date": "2026-09-24", "rep": 73, "bench": null}, {"date": "2026-09-25", "rep": 74, "bench": null}, {"date": "2026-09-26", "rep": 88, "bench": null}, {"date": "2026-09-27", "rep": 71, "bench": null}, {"date": "2026-09-28", "rep": 84, "bench": 60}, {"date": "2026-09-29", "rep": 76, "bench": 57}, {"date": "2026-09-30", "rep": 88, "bench": 65}, {"date": "2026-10-01", "rep": 81, "bench": 51}, {"date": "2026-10-02", "rep": 107, "bench": 71}, {"date": "2026-10-03", "rep": 100, "bench": 74}, {"date": "2026-10-04", "rep": null, "bench": 70}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 85, "bench": 68}, {"date": "2026-10-07", "rep": 85, "bench": 63}, {"date": "2026-10-08", "rep": 88, "bench": 67}, {"date": "2026-10-09", "rep": 83, "bench": null}, {"date": "2026-10-10", "rep": 64, "bench": null}, {"date": "2026-10-11", "rep": 108, "bench": null}, {"date": "2026-10-12", "rep": 112, "bench": null}]}, {"name": "Ayushi", "device": "No benchmark", "pts": [{"date": "2026-09-22", "rep": 46, "bench": null}, {"date": "2026-09-23", "rep": 46, "bench": null}, {"date": "2026-09-24", "rep": 70, "bench": null}, {"date": "2026-09-25", "rep": 67, "bench": null}, {"date": "2026-09-26", "rep": 72, "bench": null}, {"date": "2026-09-27", "rep": 71, "bench": null}, {"date": "2026-09-28", "rep": 75, "bench": null}, {"date": "2026-09-29", "rep": null, "bench": null}, {"date": "2026-09-30", "rep": null, "bench": null}, {"date": "2026-10-01", "rep": null, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": null, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 36, "bench": null}, {"date": "2026-10-07", "rep": 34, "bench": null}, {"date": "2026-10-08", "rep": 37, "bench": null}, {"date": "2026-10-09", "rep": 46, "bench": null}, {"date": "2026-10-10", "rep": 52, "bench": null}, {"date": "2026-10-11", "rep": 47, "bench": null}, {"date": "2026-10-12", "rep": 54, "bench": null}]}, {"name": "Samyak", "device": "No benchmark", "pts": [{"date": "2026-09-25", "rep": 45, "bench": null}, {"date": "2026-09-26", "rep": null, "bench": null}, {"date": "2026-09-27", "rep": 45, "bench": null}, {"date": "2026-09-28", "rep": 65, "bench": null}, {"date": "2026-09-29", "rep": 50, "bench": null}, {"date": "2026-09-30", "rep": 52, "bench": null}, {"date": "2026-10-01", "rep": 46, "bench": null}, {"date": "2026-10-02", "rep": 55, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": 53, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 47, "bench": null}, {"date": "2026-10-07", "rep": null, "bench": null}, {"date": "2026-10-08", "rep": 47, "bench": null}, {"date": "2026-10-09", "rep": 50, "bench": null}, {"date": "2026-10-10", "rep": 51, "bench": null}, {"date": "2026-10-11", "rep": 49, "bench": null}, {"date": "2026-10-12", "rep": 50, "bench": null}]}, {"name": "Pratyush", "device": "No benchmark", "pts": [{"date": "2026-09-29", "rep": 84, "bench": null}, {"date": "2026-09-30", "rep": 75, "bench": null}, {"date": "2026-10-01", "rep": 27, "bench": null}, {"date": "2026-10-02", "rep": 90, "bench": null}, {"date": "2026-10-03", "rep": 86, "bench": null}, {"date": "2026-10-04", "rep": 69, "bench": null}, {"date": "2026-10-05", "rep": 80, "bench": null}, {"date": "2026-10-06", "rep": 94, "bench": null}, {"date": "2026-10-07", "rep": 93, "bench": null}, {"date": "2026-10-08", "rep": 89, "bench": null}, {"date": "2026-10-09", "rep": 68, "bench": null}, {"date": "2026-10-10", "rep": 80, "bench": null}, {"date": "2026-10-11", "rep": 78, "bench": null}, {"date": "2026-10-12", "rep": 84, "bench": null}]}, {"name": "Harshul", "device": "No benchmark", "pts": [{"date": "2026-09-26", "rep": 65, "bench": null}, {"date": "2026-09-27", "rep": 89, "bench": null}, {"date": "2026-09-28", "rep": 82, "bench": null}, {"date": "2026-09-29", "rep": 75, "bench": null}, {"date": "2026-09-30", "rep": 79, "bench": null}, {"date": "2026-10-01", "rep": 42, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": null, "bench": null}, {"date": "2026-10-05", "rep": 41, "bench": null}, {"date": "2026-10-06", "rep": 54, "bench": null}, {"date": "2026-10-07", "rep": 63, "bench": null}, {"date": "2026-10-08", "rep": 41, "bench": null}, {"date": "2026-10-09", "rep": 66, "bench": null}]}, {"name": "Jagathees", "device": "Whoop", "pts": [{"date": "2026-09-30", "rep": 69, "bench": 54}, {"date": "2026-10-01", "rep": 45, "bench": 40}, {"date": "2026-10-03", "rep": 66, "bench": 67}, {"date": "2026-10-04", "rep": null, "bench": 76}, {"date": "2026-10-05", "rep": 64, "bench": 64}, {"date": "2026-10-06", "rep": 62, "bench": 60}, {"date": "2026-10-07", "rep": 64, "bench": 68}, {"date": "2026-10-08", "rep": 67, "bench": 64}, {"date": "2026-10-09", "rep": 64, "bench": 69}, {"date": "2026-10-10", "rep": 30, "bench": 24}, {"date": "2026-10-11", "rep": 63, "bench": 60}, {"date": "2026-10-12", "rep": 77, "bench": 70}]}, {"name": "Sahil", "device": "No benchmark", "pts": [{"date": "2026-10-01", "rep": 68, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": 70, "bench": null}, {"date": "2026-10-04", "rep": 89, "bench": null}, {"date": "2026-10-05", "rep": 71, "bench": null}, {"date": "2026-10-06", "rep": 82, "bench": null}, {"date": "2026-10-07", "rep": 73, "bench": null}, {"date": "2026-10-08", "rep": 95, "bench": null}, {"date": "2026-10-09", "rep": 93, "bench": null}, {"date": "2026-10-10", "rep": 94, "bench": null}, {"date": "2026-10-11", "rep": 104, "bench": null}, {"date": "2026-10-12", "rep": 89, "bench": null}]}, {"name": "Ayush", "device": "Coros", "pts": [{"date": "2026-09-30", "rep": 67, "bench": 106}, {"date": "2026-10-01", "rep": 78, "bench": 98}, {"date": "2026-10-03", "rep": 79, "bench": 107}, {"date": "2026-10-04", "rep": 85, "bench": 96}, {"date": "2026-10-05", "rep": 84, "bench": 81}, {"date": "2026-10-06", "rep": 67, "bench": 58}, {"date": "2026-10-07", "rep": 94, "bench": null}, {"date": "2026-10-08", "rep": 91, "bench": 86}, {"date": "2026-10-09", "rep": 78, "bench": 71}, {"date": "2026-10-10", "rep": 74, "bench": 83}]}, {"name": "Naman", "device": "Fitbit", "pts": [{"date": "2026-10-04", "rep": 85, "bench": 82}, {"date": "2026-10-05", "rep": 88, "bench": 93}, {"date": "2026-10-06", "rep": 83, "bench": 88}, {"date": "2026-10-07", "rep": 78, "bench": 76}, {"date": "2026-10-08", "rep": 67, "bench": 56}, {"date": "2026-10-09", "rep": 70, "bench": 55}, {"date": "2026-10-10", "rep": 91, "bench": 93}, {"date": "2026-10-11", "rep": 63, "bench": null}, {"date": "2026-10-12", "rep": 65, "bench": 51}]}, {"name": "Prashant", "device": "No benchmark", "pts": [{"date": "2026-09-26", "rep": 80, "bench": null}, {"date": "2026-09-27", "rep": null, "bench": null}, {"date": "2026-09-28", "rep": null, "bench": null}, {"date": "2026-09-29", "rep": 51, "bench": null}, {"date": "2026-09-30", "rep": 60, "bench": null}, {"date": "2026-10-01", "rep": 55, "bench": null}, {"date": "2026-10-02", "rep": null, "bench": null}, {"date": "2026-10-03", "rep": null, "bench": null}, {"date": "2026-10-04", "rep": 74, "bench": null}, {"date": "2026-10-05", "rep": null, "bench": null}, {"date": "2026-10-06", "rep": 59, "bench": null}, {"date": "2026-10-07", "rep": 66, "bench": null}, {"date": "2026-10-09", "rep": 74, "bench": null}]}, {"name": "Akshay", "device": "Whoop", "pts": [{"date": "2026-10-07", "rep": 61, "bench": 71}, {"date": "2026-10-08", "rep": 78, "bench": 78}, {"date": "2026-10-09", "rep": 72, "bench": 79}, {"date": "2026-10-10", "rep": 79, "bench": 74}, {"date": "2026-10-11", "rep": 73, "bench": 84}, {"date": "2026-10-12", "rep": 76, "bench": 75}]}, {"name": "Amjad", "device": "Amazfit", "pts": [{"date": "2026-10-01", "rep": 73, "bench": 78}, {"date": "2026-10-06", "rep": 90, "bench": null}, {"date": "2026-10-07", "rep": null, "bench": null}, {"date": "2026-10-08", "rep": null, "bench": 59}, {"date": "2026-10-09", "rep": null, "bench": null}, {"date": "2026-10-10", "rep": 67, "bench": 69}, {"date": "2026-10-11", "rep": 69, "bench": 66}, {"date": "2026-10-12", "rep": 89, "bench": 84}]}, {"name": "Mahesh", "device": "Fitbit Air", "pts": [{"date": "2026-10-07", "rep": 85, "bench": null}, {"date": "2026-10-08", "rep": 85, "bench": 87}, {"date": "2026-10-09", "rep": null, "bench": null}, {"date": "2026-10-10", "rep": 95, "bench": 101}, {"date": "2026-10-11", "rep": 27, "bench": 22}, {"date": "2026-10-12", "rep": 54, "bench": 40}]}, {"name": "Amit", "device": "Amazfit", "pts": [{"date": "2026-09-29", "rep": 65, "bench": 71}, {"date": "2026-09-30", "rep": 48, "bench": 46}, {"date": "2026-10-09", "rep": null, "bench": null}, {"date": "2026-10-11", "rep": 46, "bench": null}, {"date": "2026-10-12", "rep": 49, "bench": null}]}, {"name": "Nupur", "device": "Amazfit", "pts": [{"date": "2026-10-06", "rep": 122, "bench": 121}, {"date": "2026-10-07", "rep": 110, "bench": 104}, {"date": "2026-10-08", "rep": 98, "bench": 103}, {"date": "2026-10-09", "rep": 111, "bench": 102}]}, {"name": "Kartikey", "device": "Fitbit", "pts": [{"date": "2026-09-30", "rep": 116, "bench": 118}, {"date": "2026-10-01", "rep": 103, "bench": 131}, {"date": "2026-10-09", "rep": null, "bench": null}]}, {"name": "Sneh", "device": "Balance", "pts": [{"date": "2026-09-30", "rep": 103, "bench": 98}, {"date": "2026-10-08", "rep": 67, "bench": 61}, {"date": "2026-10-09", "rep": null, "bench": null}]}, {"name": "Harshit", "device": "No benchmark", "pts": [{"date": "2026-10-08", "rep": 54, "bench": null}, {"date": "2026-10-09", "rep": 50, "bench": null}]}];
 const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
 const fmt=d=>new Date(d+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-let cur,X=[];const W=1000,H=380,P={l:40,r:16,t:34,b:40};
+const wd=d=>new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'short'});
+const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,sg=v=>(v>0?'+':'')+v;
+const cls=g=>g==null?'':g<=5?'good':g<=10?'warn':'bad';
+const W=1000,H=400,P={l:40,r:18,t:36,b:40};
+let cur,X=[],idx=0,show={rep:true,bench:true};
+DATA.forEach(u=>{const pr=u.pts.filter(p=>p.rep!=null&&p.bench!=null);u.paired=pr.length;
+  u.gap=pr.length?avg(pr.map(p=>Math.abs(p.rep-p.bench))):null;u.diff=pr.length?avg(pr.map(p=>p.rep-p.bench)):null});
+(()=>{const all=DATA.flatMap(u=>u.pts.filter(p=>p.rep!=null&&p.bench!=null));
+  $('k1').textContent=DATA.length;$('k2').textContent=all.length;$('k3').textContent=all.length?avg(all.map(p=>Math.abs(p.rep-p.bench))).toFixed(1)+' ms':'–'})();
 function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
-function draw(u){
-  cur=u;const pts=u.pts,svg=$('svg');svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  $('uname').textContent=u.name;$('udev').textContent=u.device==='No benchmark'?'No benchmark device':'Benchmark · '+u.device;
-  const both=pts.filter(p=>p.rep!=null&&p.bench!=null),d=both.map(p=>p.rep-p.bench),avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
-  $('s1').textContent=both.length;$('s2').textContent=d.length?(avg(d)>0?'+':'')+avg(d).toFixed(1):'–';$('s3').textContent=d.length?avg(d.map(Math.abs)).toFixed(1):'–';
-  const v=pts.flatMap(p=>[p.rep,p.bench]).filter(x=>x!=null);
-  let lo=Math.min(...v),hi=Math.max(...v),pad=Math.max(5,(hi-lo)*.15);lo=Math.max(0,Math.floor((lo-pad)/5)*5);hi=Math.ceil((hi+pad)/5)*5;
-  const n=pts.length,iw=W-P.l-P.r,ih=H-P.t-P.b;X=pts.map((_,i)=>P.l+(n==1?iw/2:i*iw/(n-1)));const y=x=>P.t+ih-(x-lo)/(hi-lo)*ih;
-  for(let k=0;k<=4;k++){const val=lo+k*(hi-lo)/4,yy=y(val);el('line',{x1:P.l,x2:W-P.r,y1:yy,y2:yy,stroke:'var(--line)'},svg);
-    el('text',{x:P.l-10,y:yy+4,'text-anchor':'end','font-size':11,fill:'var(--mute)'},svg).textContent=Math.round(val)}
-  const every=Math.ceil(n/10);
-  pts.forEach((p,i)=>{if(i%every==0||i==n-1)el('text',{x:X[i],y:H-12,'text-anchor':'middle','font-size':11,fill:'var(--mute)'},svg).textContent=fmt(p.date)});
-  el('line',{id:'cross',y1:P.t-14,y2:H-P.b,stroke:'var(--mute)','stroke-width':1,opacity:0},svg);
-  [['bench','var(--bench)'],['rep','var(--rep)']].forEach(([k,c])=>{
-    let path='',pen=false;pts.forEach((p,i)=>{if(p[k]==null){pen=false;return}path+=(pen?'L':'M')+X[i]+','+y(p[k]);pen=true});
-    el('path',{d:path,fill:'none',stroke:c,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
-    pts.forEach((p,i)=>{if(p[k]==null)return;const o=k=='rep'?p.bench:p.rep;const up=o==null||p[k]>o||(p[k]==o&&k=='rep');
-      el('circle',{cx:X[i],cy:y(p[k]),r:3.5,fill:'var(--card)',stroke:c,'stroke-width':2},svg);
-      el('text',{x:X[i],y:y(p[k])+(up?-10:18),'text-anchor':'middle','font-size':11,'font-weight':600,fill:c},svg).textContent=p[k]})});
-  el('circle',{id:'hr',r:5,fill:'var(--rep)',opacity:0},svg);el('circle',{id:'hb',r:5,fill:'var(--bench)',opacity:0},svg);
-  svg._y=y;const s=$('slider');s.max=n-1;s.value=n-1;s.disabled=n<2;show(n-1);
+function renderList(){
+  const q=$('q').value.trim().toLowerCase(),list=$('list');list.innerHTML='';
+  const f=DATA.filter(u=>u.name.toLowerCase().includes(q));
+  if(!f.length){list.innerHTML='<div class="empty">No testers found</div>';return}
+  f.forEach(u=>{const b=document.createElement('button');b.className='item';b.setAttribute('aria-current',u===cur);
+    b.innerHTML=`<span class="av">${u.name[0]}</span><span class="meta"><b>${u.name}</b><span>${u.device==='No benchmark'?'No benchmark':u.device} · ${u.pts.filter(p=>p.rep!=null).length} days</span></span><span class="pill ${cls(u.gap)}">${u.gap==null?'—':u.gap.toFixed(1)}</span>`;
+    b.onclick=()=>select(u);list.appendChild(b)});
 }
-function show(i){
-  const p=cur.pts[i],svg=$('svg'),tip=$('tip'),y=svg._y;
-  const c=$('cross');c.setAttribute('x1',X[i]);c.setAttribute('x2',X[i]);c.setAttribute('opacity',.5);
-  [['hr','rep'],['hb','bench']].forEach(([id,k])=>{const e=$(id);if(p[k]==null){e.setAttribute('opacity',0);return}e.setAttribute('cx',X[i]);e.setAttribute('cy',y(p[k]));e.setAttribute('opacity',1)});
-  $('slider').value=i;$('sl').textContent=fmt(p.date);
-  const df=p.rep!=null&&p.bench!=null?((p.rep-p.bench>0?'+':'')+(p.rep-p.bench)+' ms'):'—';
-  tip.innerHTML=`<b>${fmt(p.date)}</b><span class="r">REP ${p.rep??'—'}</span><br><span class="bn">Benchmark ${p.bench??'—'}</span><br><span class="d">Diff ${df}</span>`;
+function select(u){cur=u;renderList();draw();const a=document.querySelector('.item[aria-current=true]');a&&a.scrollIntoView({block:'nearest',inline:'nearest'})}
+function draw(){
+  const u=cur,pts=u.pts,svg=$('svg');svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  $('uname').textContent=u.name;$('udev').textContent=u.device==='No benchmark'?'No benchmark device':'Benchmark · '+u.device;
+  $('s1').textContent=u.paired;$('s2').textContent=u.diff==null?'–':sg(+u.diff.toFixed(1));
+  $('s3').textContent=u.gap==null?'–':u.gap.toFixed(1);$('s3').style.color=u.gap==null?'':`var(--${cls(u.gap)})`;
+  $('tBen').disabled=!pts.some(p=>p.bench!=null);
+  const keys=['rep','bench'].filter(k=>show[k]);
+  const v=pts.flatMap(p=>keys.map(k=>p[k])).filter(x=>x!=null);if(!v.length)v.push(50);
+  let lo=Math.min(...v),hi=Math.max(...v),pad=Math.max(5,(hi-lo)*.18);lo=Math.max(0,Math.floor((lo-pad)/5)*5);hi=Math.ceil((hi+pad)/5)*5;
+  const n=pts.length,iw=W-P.l-P.r,ih=H-P.t-P.b;X=pts.map((_,i)=>P.l+(n==1?iw/2:i*iw/(n-1)));const y=x=>P.t+ih-(x-lo)/(hi-lo)*ih;
+  const defs=el('defs',{},svg);
+  [['gr','--rep'],['gb','--bench']].forEach(([id,c])=>{const g=el('linearGradient',{id,x1:0,y1:0,x2:0,y2:1},defs);
+    el('stop',{offset:'0%','stop-color':`var(${c})`,'stop-opacity':.22},g);el('stop',{offset:'100%','stop-color':`var(${c})`,'stop-opacity':0},g)});
+  for(let k=0;k<=4;k++){const val=lo+k*(hi-lo)/4,yy=y(val);el('line',{x1:P.l,x2:W-P.r,y1:yy,y2:yy,stroke:'var(--line)','stroke-dasharray':k?'2 4':''},svg);
+    el('text',{x:P.l-10,y:yy+4,'text-anchor':'end','font-size':11,fill:'var(--dim)'},svg).textContent=Math.round(val)}
+  const every=Math.ceil(n/9);
+  pts.forEach((p,i)=>{if(i%every==0||i==n-1)el('text',{x:X[i],y:H-12,'text-anchor':'middle','font-size':11,fill:'var(--dim)'},svg).textContent=fmt(p.date)});
+  el('rect',{id:'band',y:P.t-16,height:ih+16,width:Math.max(18,iw/Math.max(n-1,1)*.7),rx:6,fill:'#ffffff',opacity:0},svg);
+  [['bench','var(--bench)','gb'],['rep','var(--rep)','gr']].forEach(([k,c,g])=>{if(!show[k])return;
+    const segs=[];let s=[];pts.forEach((p,i)=>{if(p[k]==null){s.length&&segs.push(s);s=[];return}s.push([X[i],y(p[k])])});s.length&&segs.push(s);
+    segs.forEach(sg=>{const d=sg.map((q,j)=>(j?'L':'M')+q[0]+','+q[1]).join('');
+      if(sg.length>1)el('path',{d:d+`L${sg.at(-1)[0]},${P.t+ih}L${sg[0][0]},${P.t+ih}Z`,fill:`url(#${g})`},svg);
+      el('path',{d,fill:'none',stroke:c,'stroke-width':2.2,'stroke-linejoin':'round','stroke-linecap':'round'},svg)});
+    pts.forEach((p,i)=>{if(p[k]==null)return;const o=show[k=='rep'?'bench':'rep']?(k=='rep'?p.bench:p.rep):null;const up=o==null||p[k]>o||(p[k]==o&&k=='rep');
+      el('circle',{cx:X[i],cy:y(p[k]),r:3.5,fill:'var(--surface)',stroke:c,'stroke-width':2},svg);
+      el('text',{x:X[i],y:y(p[k])+(up?-11:19),'text-anchor':'middle','font-size':11,'font-weight':600,fill:c},svg).textContent=p[k]})});
+  el('circle',{id:'hr',r:6,fill:'var(--rep)',stroke:'var(--surface)','stroke-width':2.5,opacity:0},svg);
+  el('circle',{id:'hb',r:6,fill:'var(--bench)',stroke:'var(--surface)','stroke-width':2.5,opacity:0},svg);
+  svg._y=y;
+  const tb=$('tb');tb.innerHTML='';
+  pts.slice().reverse().forEach((p,ri)=>{const i=n-1-ri,d=p.rep!=null&&p.bench!=null?p.rep-p.bench:null,tr=document.createElement('tr');tr.dataset.i=i;
+    tr.innerHTML=`<td>${wd(p.date)}, ${fmt(p.date)}</td><td class="${p.rep==null?'na':'r'}">${p.rep??'—'}</td><td class="${p.bench==null?'na':'b'}">${p.bench??'—'}</td><td class="${d==null?'na':''}" style="${d==null?'':'color:var(--'+cls(Math.abs(d))+')'}">${d==null?'—':sg(d)}</td>`;
+    tr.onclick=()=>{go(i);$('wrap').scrollIntoView({behavior:'smooth',block:'center'})};tb.appendChild(tr)});
+  const s=$('slider');s.max=n-1;s.disabled=n<2;go(Math.min(idx,n-1)==idx&&cur._keep?idx:n-1);cur._keep=false;
+}
+function go(i){
+  const n=cur.pts.length;i=Math.max(0,Math.min(n-1,i));idx=i;const p=cur.pts[i],svg=$('svg'),y=svg._y,tip=$('tip');
+  const band=$('band');band.setAttribute('x',X[i]-band.getAttribute('width')/2);band.setAttribute('opacity',.04);
+  [['hr','rep'],['hb','bench']].forEach(([id,k])=>{const e=$(id);if(p[k]==null||!show[k]){e.setAttribute('opacity',0);return}e.setAttribute('cx',X[i]);e.setAttribute('cy',y(p[k]));e.setAttribute('opacity',1)});
+  const s=$('slider');s.value=i;s.style.setProperty('--p',(n<2?100:i/(n-1)*100)+'%');$('sl').textContent=fmt(p.date);
+  const d=p.rep!=null&&p.bench!=null?p.rep-p.bench:null;
+  tip.innerHTML=`<div class="d">${wd(p.date)}, ${fmt(p.date)}</div><div class="row"><span><i style="--c:var(--rep)"></i>REP</span><b>${p.rep??'—'}</b></div><div class="row"><span><i style="--c:var(--bench)"></i>Benchmark</span><b>${p.bench??'—'}</b></div><div class="row df"><span>Diff</span><b style="color:${d==null?'var(--dim)':'var(--'+cls(Math.abs(d))+')'}">${d==null?'—':sg(d)+' ms'}</b></div>`;
   const r=svg.getBoundingClientRect(),w=$('wrap'),wr=w.getBoundingClientRect(),sx=r.width/W;
-  let left=r.left-wr.left+w.scrollLeft+X[i]*sx+14;if(X[i]*sx+tip.offsetWidth+28>r.width)left-=tip.offsetWidth+28;
+  let left=r.left-wr.left+w.scrollLeft+X[i]*sx+16;if(X[i]*sx+tip.offsetWidth+32>r.width)left-=tip.offsetWidth+32;
   tip.style.left=left+'px';tip.style.opacity=1;
+  document.querySelectorAll('#tb tr').forEach(t=>t.classList.toggle('on',+t.dataset.i===i));
 }
 function near(e){const r=$('svg').getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width;let b=0;X.forEach((v,i)=>{if(Math.abs(v-x)<Math.abs(X[b]-x))b=i});return b}
-$('svg').addEventListener('pointermove',e=>show(near(e)));
-$('slider').addEventListener('input',e=>show(+e.target.value));
-const ub=$('users');DATA.forEach((u,i)=>{const b=document.createElement('button');b.textContent=u.name;b.setAttribute('aria-pressed',i==0);
-  b.onclick=()=>{ub.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x==b));draw(u)};ub.appendChild(b)});
-draw(DATA[0]);addEventListener('resize',()=>show(+$('slider').value));
+$('svg').addEventListener('pointermove',e=>go(near(e)));
+$('svg').addEventListener('pointerdown',e=>go(near(e)));
+$('slider').addEventListener('input',e=>go(+e.target.value));
+$('prev').onclick=()=>go(idx-1);$('next').onclick=()=>go(idx+1);
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range')return;if(e.key==='ArrowLeft'){go(idx-1);e.preventDefault()}if(e.key==='ArrowRight'){go(idx+1);e.preventDefault()}});
+[['tRep','rep'],['tBen','bench']].forEach(([id,k])=>$(id).onclick=()=>{const other=k=='rep'?'bench':'rep';if(show[k]&&!show[other])return;show[k]=!show[k];$(id).setAttribute('aria-pressed',show[k]);cur._keep=true;draw()});
+$('q').addEventListener('input',renderList);
+addEventListener('resize',()=>go(idx));
+select(DATA[0]);
 </script></body></html>
